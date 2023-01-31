@@ -10,8 +10,14 @@ import {
   ModalFooter,
   ModalHeader,
 } from 'reactstrap';
+import { useApolloClient, useMutation } from '@apollo/client';
+import { GET_SPEAKERS } from '../graphql/queries';
+import { ADD_SPEAKERS } from '../graphql/mutations';
 
-const Toolbar = ({ insertSpeakerEvent, sortByIdDesending }) => {
+const Toolbar = () => {
+  const apolloClient = useApolloClient();
+  const [addSpeaker] = useMutation(ADD_SPEAKERS);
+
   const [modal, setModal] = useState(false);
 
   const toggle = () => {
@@ -21,6 +27,45 @@ const Toolbar = ({ insertSpeakerEvent, sortByIdDesending }) => {
   const [first, setFirst] = useState('');
   const [last, setLast] = useState('');
   const [favorite, setFavorite] = useState(false);
+
+  const sortByIdDescending = () => {
+    const { speakers } = apolloClient.cache.readQuery({
+      query: GET_SPEAKERS,
+    });
+    apolloClient.cache.writeQuery({
+      query: GET_SPEAKERS,
+      data: {
+        speakers: {
+          __typename: 'SpeakerResults',
+          datalist: [...speakers.datalist].sort((a, b) => b.id - a.id),
+        },
+      },
+    });
+  };
+
+  const insertSpeakerEvent = (first, last, favorite) => {
+    addSpeaker({
+      variables: {
+        first,
+        last,
+        favorite,
+      },
+      update: (cache, { data: { addSpeaker } }) => {
+        const { speakers } = cache.readQuery({
+          query: GET_SPEAKERS,
+        });
+        cache.writeQuery({
+          query: GET_SPEAKERS,
+          data: {
+            speakers: {
+              __typename: 'SpeakerResults',
+              datalist: [addSpeaker, ...speakers.datalist],
+            },
+          },
+        });
+      },
+    });
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -40,8 +85,9 @@ const Toolbar = ({ insertSpeakerEvent, sortByIdDesending }) => {
               <Button color="info" onClick={toggle}>
                 <span>Insert Speaker</span>
               </Button>
-              <Button color="info" onClick={sortByIdDesending}>
-                <span>Sort Speakers By Id Desending</span>
+              &nbsp;
+              <Button onClick={sortByIdDescending} color="info">
+                <span>Sort Speakers By Id Descending</span>
               </Button>
               <Modal isOpen={modal} toggle={toggle}>
                 <Form onSubmit={handleSubmit}>
@@ -68,7 +114,7 @@ const Toolbar = ({ insertSpeakerEvent, sortByIdDesending }) => {
                         <Input
                           type="checkbox"
                           onChange={(e) => setFavorite(e.target.value === 'on')}
-                        />
+                        />{' '}
                         Favorite
                       </Label>
                     </FormGroup>

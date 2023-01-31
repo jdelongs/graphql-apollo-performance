@@ -1,16 +1,4 @@
 import { gql } from '@apollo/client';
-export const GET_SPEAKERS = gql`
-  query {
-    speakers {
-      datalist {
-        id
-        first
-        last
-        favorite
-      }
-    }
-  }
-`;
 
 export const TOGGLE_SPEAKER_FAVORITE = gql`
   mutation ToggleSpeakerFavorite($speakerId: Int!) {
@@ -34,7 +22,7 @@ export const DELETE_SPEAKER = gql`
   }
 `;
 
-export const ADD_SPEAKER = gql`
+export const ADD_SPEAKERS = gql`
   mutation AddSpeaker($first: String, $last: String, $favorite: Boolean) {
     addSpeaker(speaker: { first: $first, last: $last, favorite: $favorite }) {
       id
