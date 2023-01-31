@@ -2,10 +2,12 @@ import { gql } from '@apollo/client';
 export const GET_SPEAKERS = gql`
   query {
     speakers {
-      id
-      first
-      last
-      favorite
+      datalist {
+        id
+        first
+        last
+        favorite
+      }
     }
   }
 `;
